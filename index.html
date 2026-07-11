@@ -21,39 +21,37 @@
     </div>
   </div>
 </section>
+
 <canvas id="matrixCanvas"></canvas>
+<div id="sentimentDisplay" style="color:#00ff00; font-family:'Courier New'; margin:10px; font-size:18px;">
+  Neutral
+</div>
 
 <script>
   const canvas = document.getElementById('matrixCanvas');
   const ctx = canvas.getContext('2d');
-
-  // Make canvas full screen
   canvas.height = window.innerHeight;
   canvas.width = window.innerWidth;
 
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   const fontSize = 14;
   const columns = canvas.width / fontSize;
+  const drops = Array.from({ length: columns }).fill(1);
 
-  // Array of drops - one per column
-  const drops = [];
-  for (let x = 0; x < columns; x++) {
-    drops[x] = 1;
-  }
+  let rainColor = '#00ff00'; // default green
+  let sentimentText = "Neutral";
 
   function draw() {
-    // Black background with slight opacity for trail effect
     ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = '#0F0'; // Green text
+    ctx.fillStyle = rainColor;
     ctx.font = fontSize + 'px Courier New';
 
     for (let i = 0; i < drops.length; i++) {
       const text = letters.charAt(Math.floor(Math.random() * letters.length));
       ctx.fillText(text, i * fontSize, drops[i] * fontSize);
 
-      // Reset drop randomly after it passes screen
       if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
         drops[i] = 0;
       }
@@ -62,6 +60,32 @@
   }
 
   setInterval(draw, 33);
+
+  // 🔎 Update rain color based on buy vs sell pressure
+  function updateSentiment(buyPressure, sellPressure) {
+    const total = buyPressure + sellPressure;
+    const bullishPercent = (buyPressure / total) * 100;
+    const bearishPercent = (sellPressure / total) * 100;
+
+    if (bullishPercent > bearishPercent) {
+      rainColor = '#00ff00'; // green neon
+      sentimentText = bullishPercent.toFixed(1) + "% Bullish";
+    } else {
+      rainColor = '#ff0000'; // red neon
+      sentimentText = bearishPercent.toFixed(1) + "% Bearish";
+    }
+
+    const display = document.getElementById("sentimentDisplay");
+    display.innerText = sentimentText;
+    display.style.color = rainColor;
+  }
+
+  // Example: simulate indicator values (replace with your real indicator feed)
+  setInterval(() => {
+    const buyPressure = Math.floor(Math.random() * 100);
+    const sellPressure = Math.floor(Math.random() * 100);
+    updateSentiment(buyPressure, sellPressure);
+  }, 5000);
 </script>
 
 <style>
